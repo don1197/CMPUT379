@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <boost/algorithm/string.hpp>
 #include <InputParser.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #define STD_INPUT  0    /* file descriptor for standard input  */
 #define STD_OUTPUT 1    /* file descriptor for standard output */
@@ -96,19 +98,25 @@ int CommandExecutor::execute(CmdStruct cs)
 
 int CommandExecutor::execute(CmdStruct cs, bool exeCustomFunc)
 {
-    for(vector<string> processCmd : cs.cmdVector)
+    // DO NOT PLACE IN HEADER, ISSUE WITH LINKING FUNC POINTERS
+    map<string, function<void(vector<string>)>> funcMap = 
     {
+        {"exit",  myExit},
+        {"jobs", myJobs},
+        {"kill", myKill},
+        {"resume", myResume},
+        {"sleep", mySleep},
+        {"suspend", mySuspend},
+        {"wait", myWait},
+    };
+    struct timeval start, end;
+    struct rusage usage;
+
+    for(int index = 0 ; index < cs.cmdVector.size() ; index ++ )
+    {
+        vector<string> processCmd = cs.cmdVector[index];
+
         string cmd = processCmd[0];
-        map<string, function<void(vector<string>)>> funcMap = 
-        {
-            {"exit",  myExit},
-            {"jobs", myJobs},
-            {"kill", myKill}, // Disable me if you want to use kill cmd line
-            {"resume", myResume},
-            {"sleep", mySleep},
-            {"suspend", mySuspend},
-            {"wait", myWait},
-        };
 
         if(exeCustomFunc && funcMap.find(cmd) != funcMap.end())
         {
@@ -130,15 +138,10 @@ int CommandExecutor::execute(CmdStruct cs, bool exeCustomFunc)
                 {
                     waitpid(rc, NULL, 0);  
                 }
-                else
-                {
-                    usleep(50); // To prevent cout collisions with child              
-                }
             }
             else if(rc == 0)
             {
                 // Childcode
-                cout << "Child PID: " << getpid() << endl;
                 char* argv[processCmd.size() + 1]; // NULL Terminator
 
                 for(int i = 0 ; i < processCmd.size() ; i++ )
@@ -162,6 +165,14 @@ int CommandExecutor::execute(CmdStruct cs, bool exeCustomFunc)
             }
         }
     }
+    getrusage(RUSAGE_SELF, &usage);
+    printf("sys seconds without microseconds: %ld\n", usage.ru_stime.tv_sec); 
+    printf("sys microseconds: %ld\n", usage.ru_stime.tv_usec); 
+    printf("user seconds without microseconds: %ld\n", usage.ru_utime.tv_sec); 
+    printf("user microseconds: %ld\n", usage.ru_utime.tv_usec); 
+    printf("total user seconds: %e\n", 
+	   (double) usage.ru_utime.tv_sec 
+	 + (double) usage.ru_utime.tv_usec / (double) 1000000); 
 
     return 0;
 }
