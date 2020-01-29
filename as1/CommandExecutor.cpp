@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <boost/algorithm/string.hpp>
+#include <InputParser.h>
 
 #define STD_INPUT  0    /* file descriptor for standard input  */
 #define STD_OUTPUT 1    /* file descriptor for standard output */
@@ -17,12 +18,13 @@
 using namespace std;
 
 pid_t mainPid;
-
+InputParser ip;
 
 CommandExecutor::CommandExecutor()
 {
     cout << "Main PID " << getpid() << endl;
     mainPid = getpid();
+    ip = InputParser();
 }
 
 void CommandExecutor::myExit(vector<string> input)
@@ -33,57 +35,7 @@ void CommandExecutor::myExit(vector<string> input)
 
 void CommandExecutor::myJobs(vector<string> input)
 {
-    pid_t rc = fork();
-    int p[2];
-    int status;
-
-
-    if(rc > 0)
-    {
-        wait(&rc);
-    }
-    else if(rc == 0)
-    {
-        if(pipe(p) < 0)
-        {
-            cerr << "Failed to create pipe" << endl;
-        }
-
-        char *argv1[] = {"ps", "-o", "pid:6,ppid:6,time:8,stat:5,cmd:50", "--ppid", strdup(to_string(mainPid).c_str()) , NULL};
-        char *argv2[] = {"grep", "-v", strdup(to_string(getpid()).c_str()) , NULL}; // Parent will be ps, Child will be grep
-        rc = fork();
-
-        if(rc > 0 )
-        {
-            close( STD_INPUT );
-            dup(p[READ]);
-            close(p[READ]);
-            close(p[WRITE]);
-            execvp(argv2[0], argv2);
-        }
-        else if (rc == 0)
-        {
-            // Child
-            close(STD_OUTPUT);
-
-            dup( p[WRITE]);
-            close( p[READ]);
-
-            execvp(argv1[0], argv1);
-        }
-        else
-        {
-            cerr << "Failed to create pipe" << endl;
-        }
-        
-
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
-
+    CommandExecutor().execute(ip.parse("ps -o pid:6,ppid:6,time:8,stat:5,cmd:50 --ppid " + to_string(mainPid) + " | grep -v " + to_string(mainPid)), false);
 }
 
 void CommandExecutor::myKill(vector<string> input)
@@ -95,70 +47,70 @@ void CommandExecutor::myKill(vector<string> input)
         cerr << "Invalid ammount of args" << endl;
         return;
     }
-    
-    CmdStruct cs = CmdStruct();
-    char *argv[] = {"kill", strdup(input[0].c_str()) , NULL};
-    cs.cmdVector = argv;
-    cs.ampersand=true;
-
-    CommandExecutor().execute(cs);
+    CommandExecutor().execute(ip.parse("kill " + input[0]));
 }
 
 void CommandExecutor::myResume(vector<string> input)
 {        
-    // // Continue Process X
-    // if(input.size() != 1)
-    // {
-    //     cerr << "Invalid ammount of args" << endl;
-    //     return;
-    // }
+    // Continue Process X
+    if(input.size() != 1)
+    {
+        cerr << "Invalid ammount of args" << endl;
+        return;
+    }
 
-    // char *argv[] = {"kill", "-CONT", strdup(input[0].c_str()) , NULL};
-    // execute(argv);
+    CommandExecutor().execute(ip.parse("kill -CONT " + input[0]), false);
 }
 void CommandExecutor::mySleep(vector<string> input)
 {
-    // // Create a process that sleeps for x seconds
-    // if(input.size() != 1)
-    // {
-    //     cerr << "Invalid ammount of args" << endl;
-    //     return;
-    // }
+    // Create a process that sleeps for x seconds
+    if(input.size() != 1)
+    {
+        cerr << "Invalid ammount of args" << endl;
+        return;
+    }
 
-    // char *argv[] = {"sleep", strdup(input[0].c_str()) , NULL};
-    // execute(argv);
+    CommandExecutor().execute(ip.parse("sleep " + input[0]), false);
 }
 void CommandExecutor::mySuspend(vector<string> input)
 {
-    // // Stop Process X
-    // if(input.size() != 1)
-    // {
-    //     cerr << "Invalid ammount of args" << endl;
-    //     return;
-    // }
+    // Stop Process X
+    if(input.size() != 1)
+    {
+        cerr << "Invalid ammount of args" << endl;
+        return;
+    }
 
-    // char *argv[] = {"kill", "-STOP", strdup(input[0].c_str()) , "&", NULL};
-    // execute(argv);
+    CommandExecutor().execute(ip.parse("kill -STOP " + input[0]), false);
 }
 void CommandExecutor::myWait(vector<string> input)
 {
-    // // Wait till X is done executing
-    // if(input.size() != 1)
-    // {
-    //     cerr << "Invalid ammount of args" << endl;
-    //     return;
-    // }
+    // Wait till X is done executing
 
-    // char *argv[] = {"ps", "--no-headers", "-o", "pid:6,cmd:50", "--ppid", strdup(to_string(mainPid).c_str()) , NULL};
-    // execute(argv);
 }
 
 int CommandExecutor::execute(CmdStruct cs)
 {
+    execute(cs, true);
+}
+
+int CommandExecutor::execute(CmdStruct cs, bool exeCustomFunc)
+{
     for(vector<string> processCmd : cs.cmdVector)
     {
         string cmd = processCmd[0];
-        if(funcMap.find(cmd) != funcMap.end())
+        map<string, function<void(vector<string>)>> funcMap = 
+        {
+            {"exit",  myExit},
+            {"jobs", myJobs},
+            {"kill", myKill}, // Disable me if you want to use kill cmd line
+            {"resume", myResume},
+            {"sleep", mySleep},
+            {"suspend", mySuspend},
+            {"wait", myWait},
+        };
+
+        if(exeCustomFunc && funcMap.find(cmd) != funcMap.end())
         {
             // Custom Commands
             vector<string> argvVector(processCmd.begin() + 1, processCmd.end());
@@ -210,7 +162,6 @@ int CommandExecutor::execute(CmdStruct cs)
             }
         }
     }
-    // cout << "Done execute\n";
 
     return 0;
 }

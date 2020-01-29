@@ -24,17 +24,7 @@ class CommandExecutor
     public:
         CommandExecutor();
         int execute(CmdStruct cs);
-
-        map<string, function<void(vector<string>)>> funcMap = 
-        {
-            {"exit",  myExit},
-            {"jobs", myJobs},
-            {"kill", myKill}, // Disable me if you want to use kill cmd line
-            {"resume", myResume},
-            {"sleep", mySleep},
-            {"suspend", mySuspend},
-            {"wait", myWait},
-        };
+        int execute(CmdStruct cs, bool exeCustomFunc);
 
     private:
         char** convertToArgv(vector<string> input);
