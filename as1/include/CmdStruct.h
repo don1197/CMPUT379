@@ -7,9 +7,9 @@ using namespace std;
 struct CmdStruct
 {
     bool ampersand;
-    vector<vector<string>> cmdVector;
+    vector<vector<string> > cmdVector;
     CmdStruct(){};
-    CmdStruct(vector<vector<string>> cmdVector, bool ampersand)
+    CmdStruct(vector<vector<string> > cmdVector, bool ampersand)
     {
         cmdVector=cmdVector;
         ampersand=ampersand;

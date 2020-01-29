@@ -25,19 +25,6 @@ CommandExecutor::CommandExecutor()
     mainPid = getpid();
 }
 
-char** CommandExecutor::convertToArgv(vector<string> input)
-{
-    char* argv[input.size() + 1]; // NULL Terminator
-
-    for(int i = 0 ; i < input.size() ; i++ )
-    {
-        argv[i] = (char*) input[i].c_str();
-
-    }
-    argv[input.size()] = NULL; 
-    return argv;
-}
-
 void CommandExecutor::myExit(vector<string> input)
 {
     cout << "Exiting\n";
@@ -46,8 +33,6 @@ void CommandExecutor::myExit(vector<string> input)
 
 void CommandExecutor::myJobs(vector<string> input)
 {
-    // Show processes
-
     pid_t rc = fork();
     int p[2];
     int status;
@@ -92,17 +77,13 @@ void CommandExecutor::myJobs(vector<string> input)
         }
         
 
-        // if(execvp((char *) string("ps").c_str(), argv) != 0)
-        // {
-        //     cerr << "Error: " << strerror(errno) << endl;
-        //     exit(1); // Kill child process if child
-        // }
     }
     else
     {
         cerr << "Failed to fork\n";
         exit(1);
     }
+
 }
 
 void CommandExecutor::myKill(vector<string> input)
@@ -114,155 +95,62 @@ void CommandExecutor::myKill(vector<string> input)
         cerr << "Invalid ammount of args" << endl;
         return;
     }
+    
+    CmdStruct cs = CmdStruct();
+    char *argv[] = {"kill", strdup(input[0].c_str()) , NULL};
+    cs.cmdVector = argv;
+    cs.ampersand=true;
 
-    pid_t rc = fork();
-
-    if(rc > 0)
-    {
-        waitpid(rc, NULL, 0);                
-    }
-    else if(rc == 0)
-    { 
-        char *argv[] = {"kill", strdup(input[0].c_str()) , NULL};
-
-        if(execvp(argv[0], argv) != 0)
-        {
-            cerr << "Error: " << strerror(errno) << endl;
-            exit(1); // Kill child process if child
-        }
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
+    CommandExecutor().execute(cs);
 }
 
 void CommandExecutor::myResume(vector<string> input)
-{
-    // Continue Process X
-    if(input.size() != 1)
-    {
-        cerr << "Invalid ammount of args" << endl;
-        return;
-    }
+{        
+    // // Continue Process X
+    // if(input.size() != 1)
+    // {
+    //     cerr << "Invalid ammount of args" << endl;
+    //     return;
+    // }
 
-    pid_t rc = fork();
-
-    if(rc > 0)
-    {
-        // Run in background
-        // waitpid(rc, NULL, 0);                
-
-    }
-    else if(rc == 0)
-    { 
-        char *argv[] = {"kill", "-CONT", strdup(input[0].c_str()) , NULL};
-
-        if(execvp(argv[0], argv) != 0)
-        {
-            cerr << "Error: " << strerror(errno) << endl;
-            exit(1); // Kill child process if child
-        }
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
+    // char *argv[] = {"kill", "-CONT", strdup(input[0].c_str()) , NULL};
+    // execute(argv);
 }
 void CommandExecutor::mySleep(vector<string> input)
 {
-    // Create a process that sleeps for x seconds
+    // // Create a process that sleeps for x seconds
+    // if(input.size() != 1)
+    // {
+    //     cerr << "Invalid ammount of args" << endl;
+    //     return;
+    // }
 
-    if(input.size() != 1)
-    {
-        cerr << "Invalid ammount of args" << endl;
-        return;
-    }
-
-    pid_t rc = fork();
-
-    if(rc > 0)
-    {
-        waitpid(rc, NULL, 0);                
-    }
-    else if(rc == 0)
-    {
-        // cout << "Child PID: " << getpid() << endl;
-
-        char *argv[] = {"sleep", strdup(input[0].c_str()) , NULL};
-
-        if(execvp(argv[0], argv) != 0)
-        {
-            cerr << "Error: " << strerror(errno) << endl;
-            exit(1); // Kill child process if child
-        }
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
+    // char *argv[] = {"sleep", strdup(input[0].c_str()) , NULL};
+    // execute(argv);
 }
 void CommandExecutor::mySuspend(vector<string> input)
 {
-    // Stop Process X
-    if(input.size() != 1)
-    {
-        cerr << "Invalid ammount of args" << endl;
-        return;
-    }
+    // // Stop Process X
+    // if(input.size() != 1)
+    // {
+    //     cerr << "Invalid ammount of args" << endl;
+    //     return;
+    // }
 
-    pid_t rc = fork();
-
-    if(rc > 0)
-    {
-        // Run in background
-        // waitpid(rc, NULL, 0);                
-
-    }
-    else if(rc == 0)
-    { 
-        char *argv[] = {"kill", "-STOP", strdup(input[0].c_str()) , NULL};
-        
-        if(execvp(argv[0], argv) != 0)
-        {
-            cerr << "Error: " << strerror(errno) << endl;
-            exit(1); // Kill child process if child
-        }
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
+    // char *argv[] = {"kill", "-STOP", strdup(input[0].c_str()) , "&", NULL};
+    // execute(argv);
 }
 void CommandExecutor::myWait(vector<string> input)
 {
-    // Wait till X is done executing
-    pid_t rc = fork();
+    // // Wait till X is done executing
+    // if(input.size() != 1)
+    // {
+    //     cerr << "Invalid ammount of args" << endl;
+    //     return;
+    // }
 
-    if(rc > 0)
-    {
-        wait(&rc);
-    }
-    else if(rc == 0)
-    {
-
-        char *argv[] = {"ps", "--no-headers", "-o", "pid:6,cmd:50", "--ppid", strdup(to_string(mainPid).c_str()) , NULL};
-
-        if(execvp((char *) string("ps").c_str(), argv) != 0)
-        {
-            cerr << "Error: " << strerror(errno) << endl;
-            exit(1); // Kill child process if child
-        }
-    }
-    else
-    {
-        cerr << "Failed to fork\n";
-        exit(1);
-    }
+    // char *argv[] = {"ps", "--no-headers", "-o", "pid:6,cmd:50", "--ppid", strdup(to_string(mainPid).c_str()) , NULL};
+    // execute(argv);
 }
 
 int CommandExecutor::execute(CmdStruct cs)
