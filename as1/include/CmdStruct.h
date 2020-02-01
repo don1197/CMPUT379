@@ -11,7 +11,7 @@ struct CmdStruct
     CmdStruct(){};
     CmdStruct(vector<vector<string> > cmdVector, bool ampersand)
     {
-        cmdVector=cmdVector;
-        ampersand=ampersand;
+        cmdVector=cmdVector; // Cmd line, split by '|' followed by argv's
+        ampersand=ampersand; // Ends in ampersand?
     }
 };

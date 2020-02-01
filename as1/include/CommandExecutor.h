@@ -1,21 +1,16 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <CmdStruct.h>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
 #include <string>
 #include <sstream>
+#include <unistd.h>
+#include <vector>
 
-#include <map>
-#include <functional>
+#include <CmdStruct.h>
 
 using namespace std;
 
@@ -27,7 +22,7 @@ class CommandExecutor
         int execute(CmdStruct cs, bool exeCustomFunc);
 
     private:
-        char** convertToArgv(vector<string> input);
+        // Method pointer methods
         void static myExit(vector<string> input);
         void static myJobs(vector<string> input);
         void static myKill(vector<string> input);

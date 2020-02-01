@@ -1,7 +1,11 @@
-#include <InputParser.h>
-#include <iostream>
-#include <string>
 #include <boost/algorithm/string.hpp>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+
+#include <InputParser.h>
 
 using namespace std;
 
@@ -25,6 +29,7 @@ CmdStruct InputParser::parse(string input)
     }
 
     boost::split(parsedInput, input, boost::is_any_of("|"), boost::token_compress_on);
+
     for(auto i : parsedInput)
     {
         unparsedCmd.push_back(boost::algorithm::trim_copy(i));

@@ -39,6 +39,5 @@ int main(int argc, char *argv[])
             CmdStruct parsedResults = ip.parse(inputBuffer);
             ce.execute(parsedResults);
         }
-
     }
 }
