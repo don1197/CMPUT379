@@ -1,26 +1,22 @@
 #pragma once
 #ifndef WORKREQUEST_H
 #define WORKREQUEST_H
-enum class ModeEnum
-{
-    mode_t,
-    mode_s
-};
 
 struct WorkRequest
 {
-    ModeEnum mode;
-    int count;
-    bool isNull = true;
+    int count = 0;
     WorkRequest()
     {
         // NULL
     }
-    WorkRequest(ModeEnum m, int n)
+    WorkRequest(int n)
     {
-        isNull = false;
-        mode = m;
         count = n;
+    }
+
+    bool isInitialized()
+    {
+        return count != 0;
     }
 };
 #endif

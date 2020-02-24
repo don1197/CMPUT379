@@ -9,6 +9,8 @@ namespace Tands
 
 extern int TransSave;
 
+// DO NOT MODIFY THIS FILE
+
 // Sleep simulates pauses between transactions
 // Parameter given expresses wait time in hundreds of a nanosecond.
 

@@ -8,7 +8,7 @@ using namespace std;
 class ThreadRunner
 {
     public:
-        ThreadRunner(int i);
+        ThreadRunner();
         void execute(int i);
         double getTimeSinceStart();
 };
